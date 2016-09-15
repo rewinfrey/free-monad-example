@@ -14,13 +14,15 @@ data CommandF next =
   | GetLine (String -> next)
   deriving (Functor)
 
+type Command = F CommandF
+
 gtLine :: (MonadFree CommandF m) => m String
 gtLine = wrap (GetLine return)
 
 putLine :: (MonadFree CommandF m) => String -> m ()
 putLine message = wrap (PutLine message (return ()))
 
-run :: F CommandF a -> IO a
+run :: Command a -> IO a
 run = iterM (\command -> case command of
   PutLine message next -> do
     putStrLn message
@@ -30,7 +32,7 @@ run = iterM (\command -> case command of
     next input
   )
 
-app :: (MonadFree CommandF m) => m ()
+app :: Command ()
 app = do
   putLine "What's your name?"
   input <- gtLine
